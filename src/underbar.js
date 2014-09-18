@@ -48,11 +48,12 @@ var _ = {};
   // Note: _.each does not have a return value, but rather simply runs the
   // iterator function over each item in the input collection.
   _.each = function(collection, iterator) {
-    if (Object.prototype.toString.call(collection) === '[object Array]' || typeof collection === 'string') {
+    var length = collection.length;
+    if (length === +length) { // https://github.com/jashkenas/underscore/blob/master/underscore.js#L100-L101
       for (var i = 0; i < collection.length; i += 1) {
         iterator(collection[i], i, collection);
       }
-    } else if (typeof collection === 'object') {
+    } else {
       for (var ii in collection) {
         if (collection.hasOwnProperty(ii)){
           iterator(collection[ii], ii, collection);
@@ -68,26 +69,35 @@ var _ = {};
     // TIP: Here's an example of a function that needs to iterate, which we've
     // implemented for you. Instead of using a standard `for` loop, though,
     // it uses the iteration helper `each`, which you will need to write.
-    var result = -1;
 
+    // Option #1
+    var result = -1;
     _.each(array, function(item, index) {
       if (item === target && result === -1) {
         result = index;
       }
     });
-
     return result;
+
+    // Option #2 (I9+ Compatible)
+    // if (Array.prototype.index !== undefined) {
+    //   return array.indexOf(target);
+    // }
+
+    // Option #3 (Faster than #1)
+    // for (var i = 0; i < array.length; i += 1) {
+    //   if (array[i] === target) return i;
+    // }
+    // return -1;
   };
 
   // Return all elements of an array that pass a truth test.
   _.filter = function(collection, test) {
-    var filtered_collection = [];
+    var results = [];
     _.each(collection, function (value, i, collection) {
-      if (test(value)) {
-        filtered_collection.push(value);
-      }
+      if (test(value, i, collection)) results.push(value);
     });
-    return filtered_collection;
+    return results;
   };
 
   // Return all elements of an array that don't pass a truth test.
@@ -99,21 +109,9 @@ var _ = {};
 
   // Produce a duplicate-free version of the array.
   _.uniq = function(array) {
-    var unique_array = [];
-    var value_in_array = function (array, value) {
-      for (var i = 0; i < array.length; i += 1) {
-        if (array[i] === value) {
-          return true;
-        }
-      }
-      return false;
-    };
-    _.each(array, function (value, i, array) {
-      if (!value_in_array(unique_array, value)) {
-        unique_array.push(value);
-      }
+    return _.filter(array, function (value, i) {
+      return _.indexOf(array, value) === i;
     });
-    return unique_array;
   };
 
 
@@ -122,11 +120,11 @@ var _ = {};
     // map() is a useful primitive iteration function that works a lot
     // like each(), but in addition to running the operation on all
     // the members, it also maintains an array of results.
-    var new_collection = [];
+    var result = [];
     _.each(collection, function (value, i, collection) {
-      new_collection.push(iterator(value));
+      result.push(iterator(value));
     });
-    return new_collection;
+    return result;
   };
 
   /*
