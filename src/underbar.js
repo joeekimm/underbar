@@ -168,6 +168,13 @@ var _ = {};
   //     return total + number;
   //   }, 0); // should be 6
   _.reduce = function(collection, iterator, accumulator) {
+    if (accumulator === undefined) {
+      accumulator = collection[0];
+    }
+    _.each(collection, function (value){
+      accumulator = iterator(accumulator, value);
+    });
+    return accumulator;
   };
 
   // Determine if the array or object contains a given value (using `===`).
@@ -186,12 +193,27 @@ var _ = {};
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
+    return _.reduce(collection, function(every, item) {
+      if (
+        (iterator !== undefined && !iterator(item)) || (iterator === undefined  && !item)) 
+      {
+        return false;
+      } else {
+        return every;
+      }
+    }, true);
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+    return !_.every(collection, function (item) {
+      if (iterator === undefined) {
+        return !item;
+      }
+      return !iterator(item);
+    });
   };
 
 
@@ -214,11 +236,29 @@ var _ = {};
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    for (var i = 0; i < args.length; i++) {
+      for (var key in args[i]) {
+        if (args[i].hasOwnProperty(key)) {
+          obj[key] = args[i][key];
+        }
+      }
+    }
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    for (var i = 0; i < args.length; i++) {
+      for (var key in args[i]) {
+        if (args[i].hasOwnProperty(key) && obj[key] === undefined) {
+          obj[key] = args[i][key];
+        }
+      }
+    }
+    return obj;
   };
 
 
@@ -260,6 +300,13 @@ var _ = {};
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    var result = {};
+    return function (arg) {
+      if (result[arg] === undefined) {
+        result[arg] = func(arg);
+      }
+      return result[arg];
+    };
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -269,6 +316,10 @@ var _ = {};
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    var args = Array.prototype.slice.call(arguments, 2);
+    setTimeout(function () {
+      func.apply(null, args);
+    }, wait);
   };
 
 
@@ -283,6 +334,15 @@ var _ = {};
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    var arr = Array.prototype.slice.call(array, 0);
+    // Fisher-Yates Shuffle
+    for (var i = arr.length - 1; i > 0; i -= 1) {
+      var j = Math.floor(Math.random() * arr.length);
+      var temp = arr[j];
+      arr[j] = arr[i];
+      arr[i] = temp;
+    }
+    return arr;
   };
 
 
@@ -297,6 +357,34 @@ var _ = {};
   // of that string. For example, _.sortBy(people, 'name') should sort
   // an array of people by their name.
   _.sortBy = function(collection, iterator) {
+    var swap = function (array, i1, i2){
+      var temp = array[j];
+      array[j] = array[i];
+      array[i] = temp;
+      return array;
+    };
+    var bubbleSort = function (collection, iterator) {
+      var n = collection.length;
+      var swapped = false;
+      while (swapped === false) {
+        swapped = false;
+        for (var i = 1; i < n - 1; i += 1) {
+           if this pair is out of order 
+          if (iterator(collection[i - 1]) > iterator(collection[i])) {
+            collection = swap(collection, i - 1, i);
+            swapped = true;
+          }
+        }
+      }
+      return array;
+    };
+    if (typeof iterator === 'string') {
+      return bubbleSort(collection, function(obj) {
+        return obj[iterator];
+      });
+    } else {
+      return bubbleSort(collection, iterator);
+    }
   };
 
   // Zip together two or more arrays with elements of the same index
