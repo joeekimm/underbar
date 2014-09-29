@@ -358,25 +358,25 @@ var _ = {};
   // an array of people by their name.
   _.sortBy = function(collection, iterator) {
     var swap = function (array, i1, i2){
-      var temp = array[j];
-      array[j] = array[i];
-      array[i] = temp;
+      var temp = array[i1];
+      array[i1] = array[i2];
+      array[i2] = temp;
       return array;
     };
     var bubbleSort = function (collection, iterator) {
       var n = collection.length;
-      var swapped = false;
-      while (swapped === false) {
+      var swapped = true;
+      while (swapped !== false) {
         swapped = false;
-        for (var i = 1; i < n - 1; i += 1) {
-           if this pair is out of order 
-          if (iterator(collection[i - 1]) > iterator(collection[i])) {
-            collection = swap(collection, i - 1, i);
+        for (var i = 1; i < n; i += 1) {
+          // if this pair is out of order 
+          if (iterator(collection[i - 1]) > iterator(collection[i]) || (iterator(collection[i - 1]) === undefined && iterator(collection[i]) !== undefined)) {
+            collection = swap(collection, (i - 1), i);
             swapped = true;
           }
         }
       }
-      return array;
+      return collection;
     };
     if (typeof iterator === 'string') {
       return bubbleSort(collection, function(obj) {
@@ -393,6 +393,20 @@ var _ = {};
   // Example:
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
   _.zip = function() {
+    var args = Array.prototype.slice.call(arguments, 0);
+    var array = [];
+    var max = Math.max.apply(null, (function () {
+      return _.map(args, function (val) {
+        return val.length;
+      });
+    }()));
+    for (var i = 0; i < args.length; i += 1) {
+      for (var ii = 0; ii < max; ii += 1) {
+        array[ii] = array[ii] || [];
+        array[ii][i] = args[i][ii] || undefined;
+      }
+    }
+    return array;
   };
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
@@ -400,16 +414,52 @@ var _ = {};
   //
   // Hint: Use Array.isArray to check if something is an array
   _.flatten = function(nestedArray, result) {
+    var array = [];
+    _.each(nestedArray, function (val) {
+      if (Array.isArray(val)) {
+        var result = _.flatten(val);
+        array = array.concat(result);
+      } else {
+        array.push(val);
+      }
+    });
+    return array;
   };
 
   // Takes an arbitrary number of arrays and produces an array that contains
   // every item shared between all the passed-in arrays.
   _.intersection = function() {
+    var args = Array.prototype.slice.call(arguments, 0);
+    var array = [];
+    _.each(args[0], function (value) {
+      var all_arrays_have_property = _.every(args, function (array) {
+        return _.some(array, function (val) {
+          return val === value;
+        });
+      });
+      if (all_arrays_have_property) {
+        array.push(value);
+      }
+    });
+    return array;
   };
 
   // Take the difference between one array and a number of other arrays.
   // Only the elements present in just the first array will remain.
-  _.difference = function(array) {
+  _.difference = function() {
+    var args = Array.prototype.slice.call(arguments, 0);
+    var _array = [];
+    _.each(args[0], function (value) {
+      var some_arrays_have_property = _.some(args.slice(1), function (array) {
+        return _.some(array, function (val) {
+          return val === value;
+        });
+      });
+      if (!some_arrays_have_property) {
+        _array.push(value);
+      }
+    });
+    return _array;
   };
 
 
@@ -423,6 +473,23 @@ var _ = {};
   //
   // See the Underbar readme for details.
   _.throttle = function(func, wait) {
+    var available = true;
+    var queue = 0;
+    var timeoutHandler = function () {
+      available = true;
+    };
+    var result;
+    return function () {
+      if (available) {
+        setTimeout(timeoutHandler, wait);
+        available = false;
+        result = func();
+        return result;
+      } else {
+        queue++;
+        return result;
+      }
+    };
   };
 
 }).call(this);
