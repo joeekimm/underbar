@@ -477,9 +477,12 @@ var _ = {};
     var queue = 0;
     var timeoutHandler = function () {
       available = true;
+      if (queue > 0) {
+        executeFunction();
+      }
     };
     var result;
-    return function () {
+    var executeFunction = function () {
       if (available) {
         setTimeout(timeoutHandler, wait);
         available = false;
@@ -489,7 +492,8 @@ var _ = {};
         queue++;
         return result;
       }
-    };
+    }
+    return executeFunction;
   };
 
 }).call(this);
